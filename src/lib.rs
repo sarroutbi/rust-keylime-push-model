@@ -57,13 +57,13 @@ components:
                                   example: private_key
                                 key_identifier:
                                   type: string
-                                  example: "..."
+                                  example: "attestation_key_identifier"
                                 key_algorithm:
                                   type: string
                                   example: rsa
                                 public_hash:
                                   type: string
-                                  example: "..."
+                                  example: "cd293be6cea034bd45a0352775a219ef5dc7825ce55d1f7dae9762d80ce64411"
                         required:
                           - spec_version
                           - hash_algorithms
@@ -112,7 +112,7 @@ components:
                         properties:
                           nonce:
                             type: string
-                            example: "..."
+                            example: "here_the_nonce"
                           pcr_selection:
                             type: array
                             items:
@@ -132,13 +132,13 @@ components:
                                 example: private_key
                               key_identifier:
                                 type: string
-                                example: "..."
+                                example: "attestation_key_identifier"
                               key_algorithm:
                                 type: string
                                 example: rsa
                               public_hash:
                                 type: string
-                                example: "..."
+                                example: "cd293be6cea034bd45a0352775a219ef5dc7825ce55d1f7dae9762d80ce64411"
                           starting_offset: # Only for some evidence types
                             type: integer
                             example: 25
@@ -229,6 +229,51 @@ pub struct AttestationKeys {
     pub public_hash: String,
 }
 
+// Define the structure for the AttestationResponse:
+#[derive(Serialize, Deserialize, Debug)]
+pub struct AttestationResponse {
+    #[serde(rename(serialize = "data", deserialize = "data"))]
+    pub data: ResponseData,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ResponseData {
+    #[serde(rename(serialize = "type", deserialize = "type"))]
+    pub type_: String,
+    pub attributes: ResponseAttributes,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ResponseAttributes {
+    pub evidence_collected: Vec<EvidenceCollected>,
+    pub boot_time: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct EvidenceCollected {
+    pub evidence_class: String,
+    pub evidence_type: String,
+    pub chosen_parameters: ChosenParameters,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ChosenParameters {
+    pub nonce: String,
+    pub pcr_selection: Vec<i32>,
+    pub hash_algorithm: String,
+    pub signing_scheme: String,
+    pub attestation_key: AttestationKey,
+    pub starting_offset: Option<i32>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct AttestationKey {
+    pub key_class: String,
+    pub key_identifier: String,
+    pub key_algorithm: String,
+    pub public_hash: String,
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -306,4 +351,80 @@ mod tests {
             "cd293be6cea034bd45a0352775a219ef5dc7825ce55d1f7dae9762d80ce64411");
         assert_eq!(request.data.attributes.boot_time, "2024-11-12T16:21:17Z");
     }
+
+    #[test]
+    fn serialize_response() {
+        // Create a new AttestationResponse object and serialize it to JSON
+        let response = AttestationResponse {
+            data: ResponseData {
+                type_: "attestation".to_string(),
+                attributes: ResponseAttributes {
+                    evidence_collected: vec![
+                        EvidenceCollected {
+                            evidence_class: "certification".to_string(),
+                            evidence_type: "tpm_quote".to_string(),
+                            chosen_parameters: ChosenParameters {
+                                nonce: "nonce".to_string(),
+                                pcr_selection: vec![0],
+                                hash_algorithm: "sha384".to_string(),
+                                signing_scheme: "rsassa".to_string(),
+                                attestation_key: AttestationKey {
+                                    key_class: "private_key".to_string(),
+                                    key_identifier: "att_key_identifier".to_string(),
+                                    key_algorithm: "rsa".to_string(),
+                                    public_hash: "cd293be6cea034bd45a0352775a219ef5dc7825ce55d1f7dae9762d80ce64411".to_string(),
+                                },
+                                starting_offset: Some(25),
+                            },
+                        },
+                    ],
+                    boot_time: "2024-11-12T16:21:17Z".to_string(),
+                },
+            },
+        };
+        let json = serde_json::to_string(&response).unwrap();
+        println!("{}", json);
+        assert_eq!(json, r#"{"data":{"type":"attestation","attributes":{"evidence_collected":[{"evidence_class":"certification","evidence_type":"tpm_quote","chosen_parameters":{"nonce":"nonce","pcr_selection":[0],"hash_algorithm":"sha384","signing_scheme":"rsassa","attestation_key":{"key_class":"private_key","key_identifier":"att_key_identifier","key_algorithm":"rsa","public_hash":"cd293be6cea034bd45a0352775a219ef5dc7825ce55d1f7dae9762d80ce64411"},"starting_offset":25}}],"boot_time":"2024-11-12T16:21:17Z"}}}"#);
+    }
+
+    #[test]
+    fn deserialize_response() {
+        // Create a JSON string and deserialize it to an AttestationResponse object
+        let json = r#"
+        {
+            "data": {
+                "type":"attestation",
+                "attributes": {
+                    "evidence_collected":[{"evidence_class":"certification",
+                                            "evidence_type":"tpm_quote",
+                                            "chosen_parameters":{"nonce":"nonce",
+                                                                "pcr_selection":[0],
+                                                                "hash_algorithm":"sha384",
+                                                                "signing_scheme":"rsassa",
+                                                                "attestation_key":{"key_class":"private_key",
+                                                                                    "key_identifier":"att_key_identifier",
+                                                                                    "key_algorithm":"rsa",
+                                                                                    "public_hash":"cd293be6cea034bd45a0352775a219ef5dc7825ce55d1f7dae9762d80ce64411"},
+                                                                "starting_offset":25}}],
+                     "boot_time":"2024-11-12T16:21:17Z"
+                }
+            }
+        }"#;
+        let response: AttestationResponse = serde_json::from_str(json).unwrap();
+        assert_eq!(response.data.type_, "attestation");
+        assert_eq!(response.data.attributes.evidence_collected[0].evidence_class, "certification");
+        assert_eq!(response.data.attributes.evidence_collected[0].evidence_type, "tpm_quote");
+        assert_eq!(response.data.attributes.evidence_collected[0].chosen_parameters.nonce, "nonce");
+        assert_eq!(response.data.attributes.evidence_collected[0].chosen_parameters.pcr_selection[0], 0);
+        assert_eq!(response.data.attributes.evidence_collected[0].chosen_parameters.hash_algorithm, "sha384");
+        assert_eq!(response.data.attributes.evidence_collected[0].chosen_parameters.signing_scheme, "rsassa");
+        assert_eq!(response.data.attributes.evidence_collected[0].chosen_parameters.attestation_key.key_class, "private_key");
+        assert_eq!(response.data.attributes.evidence_collected[0].chosen_parameters.attestation_key.key_identifier, "att_key_identifier");
+        assert_eq!(response.data.attributes.evidence_collected[0].chosen_parameters.attestation_key.key_algorithm, "rsa");
+        assert_eq!(response.data.attributes.evidence_collected[0].chosen_parameters.attestation_key.public_hash,
+            "cd293be6cea034bd45a0352775a219ef5dc7825ce55d1f7dae9762d80ce64411");
+        assert_eq!(response.data.attributes.evidence_collected[0].chosen_parameters.starting_offset, Some(25));
+        assert_eq!(response.data.attributes.boot_time, "2024-11-12T16:21:17Z");
+    }
+
 }
