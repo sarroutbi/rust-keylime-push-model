@@ -189,10 +189,11 @@ use serde::{Deserialize, Serialize};
 // Define the structure for the AttestationRequest:
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AttestationRequest {
-    pub data: Data,
+    #[serde(rename(serialize = "data", deserialize = "data"))]
+    pub data: RequestData,
 }
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Data {
+pub struct RequestData {
     #[serde(rename(serialize = "type", deserialize = "type"))]
     pub type_: String,
     pub attributes: Attributes,
@@ -237,7 +238,7 @@ mod tests {
     fn serialize_request() {
         // Create a new AttestationRequest object and serialize it to JSON
         let request = AttestationRequest {
-            data: Data {
+            data: RequestData {
                 type_: "attestation".to_string(),
                 attributes: Attributes {
                     evidence_supported: vec![
