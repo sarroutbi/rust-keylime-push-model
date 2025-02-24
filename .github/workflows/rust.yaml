@@ -1,0 +1,61 @@
+---
+name: "Rust"
+
+"on":
+  push:
+    branches: ["main"]
+    paths-ignore:
+      - '**.md'
+      - '.wordlist.txt'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - '.wordlist.txt'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os:
+          - fedora:latest
+          - quay.io/centos/centos:stream10
+          - debian:latest
+          - ubuntu:latest
+        stable: [true]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build dependencies
+        run: bash .github/workflows/install-dependencies
+      - name: Setup toolchain (coverage)
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: clippy, rustfmt
+      - name: Build (release)
+        run: cargo build --release
+      - name: Run tests (release)
+        run: cargo test --release
+      - name: Build
+        run: cargo build
+      - name: Run tests
+        run: cargo test
+      - name: Run tests (memory safety)
+        run: |
+          cargo install cargo-valgrind
+          cargo valgrind test
+        continue-on-error: true
+      - name: Clippy
+        run: cargo clippy -- --deny "warnings"
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+    container:
+      image: ${{matrix.os}}
+      env:
+        DISTRO: ${{matrix.os}}
+        run:
+          set -eu
+          echo "DISTRO:${DISTRO}"
