@@ -94,7 +94,6 @@ pub struct AttestationKey {
     pub public_hash: String,
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -132,7 +131,10 @@ mod tests {
         };
         let json = serde_json::to_string(&request).unwrap();
         println!("{}", json);
-        assert_eq!(json, r#"{"data":{"type":"attestation","attributes":{"evidence_supported":[{"evidence_class":"certification","evidence_type":"tpm_quote","agent_capabilities":{"spec_version":"2.0","hash_algorithms":["sha3_512"],"signing_schemes":["rsassa"],"attestation_keys":[{"key_class":"private_key","key_identifier":"att_key_identifier","key_algorithm":"rsa","public_hash":"cd293be6cea034bd45a0352775a219ef5dc7825ce55d1f7dae9762d80ce64411"}]},"version":"2.1"}],"boot_time":"2024-11-12T16:21:17Z"}}}"#);
+        assert_eq!(
+            json,
+            r#"{"data":{"type":"attestation","attributes":{"evidence_supported":[{"evidence_class":"certification","evidence_type":"tpm_quote","agent_capabilities":{"spec_version":"2.0","hash_algorithms":["sha3_512"],"signing_schemes":["rsassa"],"attestation_keys":[{"key_class":"private_key","key_identifier":"att_key_identifier","key_algorithm":"rsa","public_hash":"cd293be6cea034bd45a0352775a219ef5dc7825ce55d1f7dae9762d80ce64411"}]},"version":"2.1"}],"boot_time":"2024-11-12T16:21:17Z"}}}"#
+        );
     }
 
     #[test]
@@ -158,17 +160,64 @@ mod tests {
         }"#;
         let request: AttestationRequest = serde_json::from_str(json).unwrap();
         assert_eq!(request.data.type_, "attestation");
-        assert_eq!(request.data.attributes.evidence_supported[0].evidence_class, "certification");
-        assert_eq!(request.data.attributes.evidence_supported[0].version, Some("2.1".to_string()));
-        assert_eq!(request.data.attributes.evidence_supported[0].evidence_type, "tpm_quote");
-        assert_eq!(request.data.attributes.evidence_supported[0].agent_capabilities.spec_version, "2.0");
-        assert_eq!(request.data.attributes.evidence_supported[0].agent_capabilities.hash_algorithms[0], "sha3_512");
-        assert_eq!(request.data.attributes.evidence_supported[0].agent_capabilities.signing_schemes[0], "rsassa");
-        assert_eq!(request.data.attributes.evidence_supported[0].agent_capabilities.attestation_keys[0].key_class, "private_key");
-        assert_eq!(request.data.attributes.evidence_supported[0].agent_capabilities.attestation_keys[0].key_identifier, "att_key_identifier");
-        assert_eq!(request.data.attributes.evidence_supported[0].agent_capabilities.attestation_keys[0].key_algorithm, "rsa");
-        assert_eq!(request.data.attributes.evidence_supported[0].agent_capabilities.attestation_keys[0].public_hash,
-            "cd293be6cea034bd45a0352775a219ef5dc7825ce55d1f7dae9762d80ce64411");
+        assert_eq!(
+            request.data.attributes.evidence_supported[0].evidence_class,
+            "certification"
+        );
+        assert_eq!(
+            request.data.attributes.evidence_supported[0].version,
+            Some("2.1".to_string())
+        );
+        assert_eq!(
+            request.data.attributes.evidence_supported[0].evidence_type,
+            "tpm_quote"
+        );
+        assert_eq!(
+            request.data.attributes.evidence_supported[0]
+                .agent_capabilities
+                .spec_version,
+            "2.0"
+        );
+        assert_eq!(
+            request.data.attributes.evidence_supported[0]
+                .agent_capabilities
+                .hash_algorithms[0],
+            "sha3_512"
+        );
+        assert_eq!(
+            request.data.attributes.evidence_supported[0]
+                .agent_capabilities
+                .signing_schemes[0],
+            "rsassa"
+        );
+        assert_eq!(
+            request.data.attributes.evidence_supported[0]
+                .agent_capabilities
+                .attestation_keys[0]
+                .key_class,
+            "private_key"
+        );
+        assert_eq!(
+            request.data.attributes.evidence_supported[0]
+                .agent_capabilities
+                .attestation_keys[0]
+                .key_identifier,
+            "att_key_identifier"
+        );
+        assert_eq!(
+            request.data.attributes.evidence_supported[0]
+                .agent_capabilities
+                .attestation_keys[0]
+                .key_algorithm,
+            "rsa"
+        );
+        assert_eq!(
+            request.data.attributes.evidence_supported[0]
+                .agent_capabilities
+                .attestation_keys[0]
+                .public_hash,
+            "cd293be6cea034bd45a0352775a219ef5dc7825ce55d1f7dae9762d80ce64411"
+        );
         assert_eq!(request.data.attributes.boot_time, "2024-11-12T16:21:17Z");
     }
 
@@ -204,7 +253,10 @@ mod tests {
         };
         let json = serde_json::to_string(&response).unwrap();
         println!("{}", json);
-        assert_eq!(json, r#"{"data":{"type":"attestation","attributes":{"evidence_collected":[{"evidence_class":"certification","evidence_type":"tpm_quote","chosen_parameters":{"nonce":"nonce","pcr_selection":[0],"hash_algorithm":"sha384","signing_scheme":"rsassa","attestation_key":{"key_class":"private_key","key_identifier":"att_key_identifier","key_algorithm":"rsa","public_hash":"cd293be6cea034bd45a0352775a219ef5dc7825ce55d1f7dae9762d80ce64411"},"starting_offset":25}}],"boot_time":"2024-11-12T16:21:17Z"}}}"#);
+        assert_eq!(
+            json,
+            r#"{"data":{"type":"attestation","attributes":{"evidence_collected":[{"evidence_class":"certification","evidence_type":"tpm_quote","chosen_parameters":{"nonce":"nonce","pcr_selection":[0],"hash_algorithm":"sha384","signing_scheme":"rsassa","attestation_key":{"key_class":"private_key","key_identifier":"att_key_identifier","key_algorithm":"rsa","public_hash":"cd293be6cea034bd45a0352775a219ef5dc7825ce55d1f7dae9762d80ce64411"},"starting_offset":25}}],"boot_time":"2024-11-12T16:21:17Z"}}}"#
+        );
     }
 
     #[test]
@@ -232,19 +284,72 @@ mod tests {
         }"#;
         let response: AttestationResponse = serde_json::from_str(json).unwrap();
         assert_eq!(response.data.type_, "attestation");
-        assert_eq!(response.data.attributes.evidence_collected[0].evidence_class, "certification");
-        assert_eq!(response.data.attributes.evidence_collected[0].evidence_type, "tpm_quote");
-        assert_eq!(response.data.attributes.evidence_collected[0].chosen_parameters.nonce, "nonce");
-        assert_eq!(response.data.attributes.evidence_collected[0].chosen_parameters.pcr_selection[0], 0);
-        assert_eq!(response.data.attributes.evidence_collected[0].chosen_parameters.hash_algorithm, "sha384");
-        assert_eq!(response.data.attributes.evidence_collected[0].chosen_parameters.signing_scheme, "rsassa");
-        assert_eq!(response.data.attributes.evidence_collected[0].chosen_parameters.attestation_key.key_class, "private_key");
-        assert_eq!(response.data.attributes.evidence_collected[0].chosen_parameters.attestation_key.key_identifier, "att_key_identifier");
-        assert_eq!(response.data.attributes.evidence_collected[0].chosen_parameters.attestation_key.key_algorithm, "rsa");
-        assert_eq!(response.data.attributes.evidence_collected[0].chosen_parameters.attestation_key.public_hash,
-            "cd293be6cea034bd45a0352775a219ef5dc7825ce55d1f7dae9762d80ce64411");
-        assert_eq!(response.data.attributes.evidence_collected[0].chosen_parameters.starting_offset, Some(25));
+        assert_eq!(
+            response.data.attributes.evidence_collected[0].evidence_class,
+            "certification"
+        );
+        assert_eq!(
+            response.data.attributes.evidence_collected[0].evidence_type,
+            "tpm_quote"
+        );
+        assert_eq!(
+            response.data.attributes.evidence_collected[0]
+                .chosen_parameters
+                .nonce,
+            "nonce"
+        );
+        assert_eq!(
+            response.data.attributes.evidence_collected[0]
+                .chosen_parameters
+                .pcr_selection[0],
+            0
+        );
+        assert_eq!(
+            response.data.attributes.evidence_collected[0]
+                .chosen_parameters
+                .hash_algorithm,
+            "sha384"
+        );
+        assert_eq!(
+            response.data.attributes.evidence_collected[0]
+                .chosen_parameters
+                .signing_scheme,
+            "rsassa"
+        );
+        assert_eq!(
+            response.data.attributes.evidence_collected[0]
+                .chosen_parameters
+                .attestation_key
+                .key_class,
+            "private_key"
+        );
+        assert_eq!(
+            response.data.attributes.evidence_collected[0]
+                .chosen_parameters
+                .attestation_key
+                .key_identifier,
+            "att_key_identifier"
+        );
+        assert_eq!(
+            response.data.attributes.evidence_collected[0]
+                .chosen_parameters
+                .attestation_key
+                .key_algorithm,
+            "rsa"
+        );
+        assert_eq!(
+            response.data.attributes.evidence_collected[0]
+                .chosen_parameters
+                .attestation_key
+                .public_hash,
+            "cd293be6cea034bd45a0352775a219ef5dc7825ce55d1f7dae9762d80ce64411"
+        );
+        assert_eq!(
+            response.data.attributes.evidence_collected[0]
+                .chosen_parameters
+                .starting_offset,
+            Some(25)
+        );
         assert_eq!(response.data.attributes.boot_time, "2024-11-12T16:21:17Z");
     }
-
 }
