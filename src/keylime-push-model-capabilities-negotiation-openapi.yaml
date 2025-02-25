@@ -1,10 +1,11 @@
+---
 openapi: 3.0.0
 info:
   title: Capabilities Negotiation API
   version: 1.0.0
 components:
   schemas:
-    AttestationRequest: # Request schema
+    AttestationRequest:
       type: object
       properties:
         data:
@@ -65,7 +66,7 @@ components:
                           - hash_algorithms
                           - signing_schemes
                           - attestation_keys
-                      version:  # Only present for some evidence types
+                      version:
                         type: string
                         example: "2.1"
                 boot_time:
@@ -80,7 +81,7 @@ components:
             - attributes
       required:
         - data
-    AttestationResponse: # Response schema
+    AttestationResponse:
       type: object
       properties:
         data:
@@ -92,7 +93,7 @@ components:
             attributes:
               type: object
               properties:
-                evidence_collected: # Nuevo campo para la respuesta
+                evidence_collected:
                   type: array
                   items:
                     type: object
@@ -135,7 +136,7 @@ components:
                               public_hash:
                                 type: string
                                 example: "cd293be6cea034bd45a0352775a219ef5dc7825ce55d1f7dae9762d80ce64411"
-                          starting_offset: # Only for some evidence types
+                          starting_offset:
                             type: integer
                             example: 25
                 boot_time:
@@ -165,8 +166,8 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AttestationRequest' # Usa AttestationRequest
-      responses:
+              $ref: '#/components/schemas/AttestationRequest'
+      responses:  # PENDING: other possible response codes
         '201':
           description: Attestation data created successfully
         '200':
@@ -174,7 +175,6 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AttestationResponse' # Usa AttestationResponse
+                $ref: '#/components/schemas/AttestationResponse'
         '400':
           description: Bad request (e.g., invalid input)
-        # other possible response codes
